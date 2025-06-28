@@ -7,7 +7,6 @@ def create_connection():
     conn = sqlite3.connect(DB_PATH)
     return conn
 
-# database/db.py
 
 def init_db():
     if not os.path.exists("data"):
