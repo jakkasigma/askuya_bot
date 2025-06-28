@@ -1,37 +1,48 @@
-import sqlite3
+# database/db.py
+
+import pymysql
 import os
 
-DB_PATH = "data/askuya.db"
-
 def create_connection():
-    conn = sqlite3.connect(DB_PATH)
-    return conn
-
+    try:
+        connection = pymysql.connect(
+            host=os.environ.get("MYSQLHOST"),
+            user=os.environ.get("MYSQLUSER"),
+            password=os.environ.get("MYSQLPASSWORD"),
+            database=os.environ.get("MYSQLDATABASE"),
+            port=int(os.environ.get("MYSQLPORT")),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        return connection
+    except Exception as e:
+        print("❌ Gagal koneksi ke MySQL:", e)
+        return None
 
 def init_db():
-    if not os.path.exists("data"):
-        os.makedirs("data")
-
     conn = create_connection()
+    if conn is None:
+        print("❌ Tidak bisa membuat tabel karena koneksi gagal.")
+        return
+
     cursor = conn.cursor()
 
-    # Tabel users
+    # 🔹 Tabel users
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY,
-            username TEXT,
-            alias TEXT
+            user_id BIGINT PRIMARY KEY,
+            username VARCHAR(255),
+            alias VARCHAR(255)
         )
     """)
 
-    # ✅ Tabel messages dengan kolom lengkap
+    # 🔹 Tabel messages
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            target_user_id INTEGER,
-            sender_user_id INTEGER,
-            sender_username TEXT,
-            sender_name TEXT,
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            target_user_id BIGINT,
+            sender_user_id BIGINT,
+            sender_username VARCHAR(255),
+            sender_name VARCHAR(255),
             message TEXT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
@@ -39,4 +50,3 @@ def init_db():
 
     conn.commit()
     conn.close()
-
