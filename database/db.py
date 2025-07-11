@@ -2,6 +2,8 @@
 
 import pymysql
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 def create_connection():
     try:
@@ -10,7 +12,7 @@ def create_connection():
             user=os.environ.get("MYSQLUSER"),
             password=os.environ.get("MYSQLPASSWORD"),
             database=os.environ.get("MYSQLDATABASE"),
-            port=int(os.environ.get("MYSQLPORT")),
+            port=int(os.environ.get("MYSQLPORT", 3306)),
             cursorclass=pymysql.cursors.DictCursor
         )
         return connection

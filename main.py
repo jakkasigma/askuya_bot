@@ -1,3 +1,4 @@
+import os
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -8,6 +9,9 @@ from telegram.ext import (
 )
 from telegram import BotCommand
 from database.db import init_db
+from dotenv import load_dotenv
+load_dotenv()
+
 
 # ─────────────── 🔹 Handler Pengguna ───────────────
 from handlers.start import start
@@ -37,11 +41,18 @@ from handlers.report import report_handler
 
 
 def main():
+    # Inisialisasi database
     init_db()
 
-    ADMIN_IDS = [7882692915, 5632859442]
+    # Ambil token bot & admin dari environment
+    BOT_TOKEN = os.environ.get("BOT_TOKEN")
+    ADMIN_IDS = list(map(int, os.environ.get("ADMIN_IDS", "").split(",")))
+    MYSQLPORT = int(os.environ.get("MYSQLPORT", "3306"))
+    print("🔐 BOT_TOKEN:", BOT_TOKEN)
 
-    application = ApplicationBuilder().token("7631768624:AAEaraFr3TCYha8a-Vu_H_GjKlncTSjxgMY").build()
+
+    # Setup aplikasi Telegram
+    application = ApplicationBuilder().token(BOT_TOKEN).build()
     application.bot_data["ADMIN_IDS"] = ADMIN_IDS
 
     # 👤 Pengguna
@@ -67,13 +78,15 @@ def main():
     # 🛡️ Pelaporan
     application.add_handler(report_handler)
 
-    # 🔁 Pesan Biasa
+    # 🔁 Pesan Umum
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, route_message))
 
     print("🚀 Bot aktif dan siap menerima pesan...")
+    print("🔐 BOT_TOKEN:", BOT_TOKEN)
+    print("🛡️ ADMIN_IDS:", ADMIN_IDS)
+
     application.run_polling()
 
 
 if __name__ == "__main__":
     main()
-
