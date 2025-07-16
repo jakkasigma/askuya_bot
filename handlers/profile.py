@@ -14,7 +14,12 @@ async def menu_profil(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     alias = user_data[2]
-    link = f"https://t.me/{context.bot.username}?start={alias}-{user_id}"
+    if not alias:
+        await query.edit_message_text("❌ Alias kamu belum diatur. Silakan atur alias dulu.")
+        return
+
+    bot_username = context.bot.username or "your_bot"
+    link = f"https://t.me/{bot_username}?start={alias}-{user_id}"
 
     keyboard = [
         [
@@ -24,11 +29,10 @@ async def menu_profil(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     await query.edit_message_text(
-    f"<b>👤 Profil Kamu</b>\n\n"
-    f"✨ Alias kamu: <b>{alias}</b>\n"
-    f"🔗 Link rahasia kamu:\n<code>{link}</code>\n\n"
-    f"Bagikan link ini ke teman-temanmu agar mereka bisa ngirim pesan secara anonim ke kamu 💌",
-    reply_markup=InlineKeyboardMarkup(keyboard),
-    parse_mode=ParseMode.HTML
-)
-
+        f"<b>👤 Profil Kamu</b>\n\n"
+        f"• Alias: <b>{alias}</b>\n"
+        f"• Link Rahasia:\n<code>{link}</code>\n\n"
+        f"🔗 Bagikan link ini ke temanmu supaya mereka bisa kirim pesan anonim 💌",
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode=ParseMode.HTML
+    )

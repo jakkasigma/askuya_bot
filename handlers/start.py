@@ -39,7 +39,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    if not user_data[2]:  # Cek apakah alias kosong
+    if not user_data["alias"]:  # alias kosong
         await update.message.reply_text(
             "⚠️ <b>Kamu belum punya alias, tulis dulu ya:</b>\n\nContoh: <i>IrgiManis</i>",
             parse_mode=ParseMode.HTML

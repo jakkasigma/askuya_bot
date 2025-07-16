@@ -11,6 +11,9 @@ from telegram.ext import (
 
 from database.user_db import get_all_user_ids
 
+import logging
+logger = logging.getLogger(__name__)
+
 ASK_MESSAGE, CONFIRM_SEND = range(2)
 
 # 🚀 Mulai broadcast
@@ -61,6 +64,10 @@ async def confirm_send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         return ConversationHandler.END
 
     raw_message = context.user_data.get("broadcast_message")
+    if not raw_message:
+        await query.edit_message_text("❌ Tidak ada pesan untuk dikirim.")
+        return ConversationHandler.END
+
     message = f"📢 <b>Pesan BrotKes</b>\n\n{raw_message}"
 
     user_ids = get_all_user_ids()
@@ -79,6 +86,8 @@ async def confirm_send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         f"📤 Berhasil: {success} user\n"
         f"❌ Gagal: {failed} user"
     )
+
+    logger.info(f"[BROADCAST] Selesai: {success} berhasil, {failed} gagal")
     return ConversationHandler.END
 
 # ❌ Batal

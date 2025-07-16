@@ -27,35 +27,33 @@ async def export_all_messages_csv(update: Update, context: ContextTypes.DEFAULT_
     await query.answer()
 
     messages = get_all_messages()
-
     now = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"semua_pesan_{now}.csv"
 
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(["Nama Pengirim", "Username", "ID", "Pesan", "Waktu", "Alias Penerima"])
-
         for msg in messages:
             name, username, sender_id, message, timestamp, target_user_id = msg
             target_data = get_user_by_id(target_user_id)
             target_alias = target_data[2] if target_data and target_data[2] else "❓Tidak Diketahui"
             writer.writerow([name, username, sender_id, message, timestamp, target_alias])
 
-    with open(filename, "rb") as f:
-        await query.message.reply_document(
-            document=InputFile(f, filename=os.path.basename(filename)),
-            caption="📦 Berikut file semua pesan dalam format CSV.",
-            reply_markup=admin_back_button(),
-            parse_mode="HTML"
-        )
+    try:
+        with open(filename, "rb") as f:
+            await query.message.reply_document(
+                document=InputFile(f, filename=os.path.basename(filename)),
+                caption="📦 Berikut file semua pesan dalam format CSV.",
+                reply_markup=admin_back_button(),
+                parse_mode="HTML"
+            )
+    finally:
+        os.remove(filename)
 
-    os.remove(filename)
- 
 # 🔁 Step 1: Mulai ekspor by alias
 async def start_export_by_alias(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-
     await query.message.edit_text(
         "🔍 <b>Masukkan alias yang ingin diekspor pesannya:</b>",
         parse_mode="HTML"
@@ -87,7 +85,8 @@ async def handle_export_by_alias(update: Update, context: ContextTypes.DEFAULT_T
         return ConversationHandler.END
 
     now = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"pesan_{alias}_{now}.csv"
+    safe_alias = "".join(c for c in alias if c.isalnum() or c in ("_", "-")).strip()
+    filename = f"pesan_{safe_alias}_{now}.csv"
 
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
@@ -95,17 +94,20 @@ async def handle_export_by_alias(update: Update, context: ContextTypes.DEFAULT_T
         for msg in messages:
             writer.writerow(msg)
 
-    with open(filename, "rb") as f:
-        await update.message.reply_document(
-            document=InputFile(f, filename=os.path.basename(filename)),
-            caption=f"📅 Pesan untuk alias <b>{alias}</b>",
-            reply_markup=admin_back_button(),
-            parse_mode="HTML"
-        )
+    try:
+        with open(filename, "rb") as f:
+            await update.message.reply_document(
+                document=InputFile(f, filename=os.path.basename(filename)),
+                caption=f"📅 Pesan untuk alias <b>{alias}</b>",
+                reply_markup=admin_back_button(),
+                parse_mode="HTML"
+            )
+    finally:
+        os.remove(filename)
 
-    os.remove(filename)
     return ConversationHandler.END
 
+# 📦 Handler
 export_by_alias_handler = ConversationHandler(
     entry_points=[CallbackQueryHandler(start_export_by_alias, pattern="^admin_export_by_alias$")],
     states={
@@ -113,4 +115,3 @@ export_by_alias_handler = ConversationHandler(
     },
     fallbacks=[],
 )
- 

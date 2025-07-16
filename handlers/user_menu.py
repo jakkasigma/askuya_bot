@@ -2,12 +2,16 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from models.user_model import get_user_by_id
 from telegram.constants import ParseMode
+import logging
+
+logger = logging.getLogger(__name__)
 
 async def show_user_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user_data = get_user_by_id(user_id)
 
     if not user_data:
+        logger.warning(f"[USER MENU] Data user tidak ditemukan untuk user_id={user_id}")
         if update.message:
             await update.message.reply_text("❌ Data user tidak ditemukan.")
         elif update.callback_query:
@@ -21,11 +25,14 @@ async def show_user_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton("📄 Profil", callback_data="menu_profil"),
             InlineKeyboardButton("📥 Inbox", callback_data="menu_inbox"),
             InlineKeyboardButton("❓ Bantuan", callback_data="menu_bantuan"),
-
         ]
     ]
 
-    text = f"Haii <b>{alias}</b> 👋\nSiap buat nerima pesan rahasia hari ini? 🤭\n\nLangsung aja pilih menu di bawah ini ya!"
+    text = (
+        f"Haii <b>{alias}</b> 👋\n"
+        "Siap buat nerima pesan rahasia hari ini? 🤭\n\n"
+        "Langsung aja pilih menu di bawah ini ya!"
+    )
 
     if update.message:
         await update.message.reply_text(
@@ -52,10 +59,8 @@ async def menu_bantuan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "❗ Jika kamu menerima pesan yang tidak pantas, gunakan tombol <b>Laporkan</b> yang ada di bawah pesan tersebut."
     )
 
-
     keyboard = [[InlineKeyboardButton("🔙 Kembali ke Menu", callback_data="menu_kembali")]]
 
-    # Jika dipanggil dari tombol (callback query)
     if update.callback_query:
         await update.callback_query.answer()
         await update.callback_query.edit_message_text(
@@ -63,7 +68,6 @@ async def menu_bantuan(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode=ParseMode.HTML
         )
-    # Jika dipanggil dari command seperti /bantuan
     elif update.message:
         await update.message.reply_text(
             pesan,

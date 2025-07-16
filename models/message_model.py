@@ -1,4 +1,3 @@
-import sqlite3
 from database.db import create_connection
 
 # 🔹 Simpan pesan anonim
@@ -7,7 +6,7 @@ def save_message(target_user_id: int, sender_user_id: int, sender_username: str,
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO messages (target_user_id, sender_user_id, sender_username, sender_name, message)
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s)
     """, (target_user_id, sender_user_id, sender_username, sender_name, message))
     conn.commit()
     conn.close()
@@ -19,7 +18,7 @@ def get_messages_for_user(user_id: int):
     cursor.execute("""
         SELECT message, timestamp
         FROM messages
-        WHERE target_user_id = ?
+        WHERE target_user_id = %s
         ORDER BY timestamp DESC
     """, (user_id,))
     results = cursor.fetchall()
@@ -33,7 +32,7 @@ def get_messages_for_user_detailed(user_id: int):
     cursor.execute("""
         SELECT sender_username, message, timestamp, sender_name, sender_user_id
         FROM messages
-        WHERE target_user_id = ?
+        WHERE target_user_id = %s
         ORDER BY timestamp DESC
     """, (user_id,))
     results = cursor.fetchall()
@@ -61,7 +60,7 @@ def search_messages_by_alias_and_keyword(user_id: int, keyword: str):
     cursor.execute("""
         SELECT sender_username, sender_user_id, message, timestamp, sender_name
         FROM messages
-        WHERE target_user_id = ? AND message LIKE ?
+        WHERE target_user_id = %s AND message LIKE %s
         ORDER BY timestamp DESC
     """, (user_id, f"%{keyword}%"))
     results = cursor.fetchall()
@@ -75,7 +74,7 @@ def get_messages_by_user_id(user_id: int):
     cursor.execute("""
         SELECT sender_name, sender_username, sender_user_id, message, timestamp
         FROM messages
-        WHERE target_user_id = ?
+        WHERE target_user_id = %s
         ORDER BY timestamp DESC
     """, (user_id,))
     results = cursor.fetchall()
@@ -97,7 +96,7 @@ def get_all_messages():
 def get_user_by_alias(alias):
     conn = create_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE alias = ?", (alias,))
+    cursor.execute("SELECT * FROM users WHERE alias = %s", (alias,))
     return cursor.fetchone()
 
 def get_messages_by_alias(target_user_id):
@@ -106,8 +105,7 @@ def get_messages_by_alias(target_user_id):
     cursor.execute("""
         SELECT sender_name, sender_username, sender_user_id, message, timestamp
         FROM messages
-        WHERE target_user_id = ?
+        WHERE target_user_id = %s
         ORDER BY timestamp DESC
     """, (target_user_id,))
     return cursor.fetchall()
-

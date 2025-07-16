@@ -6,6 +6,8 @@ from models.admin_model import get_all_users
 from models.message_model import get_all_messages_detailed
 from models.user_model import get_user_by_id
 
+import logging
+logger = logging.getLogger(__name__)
 
 # 🔧 Menu utama admin
 async def admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -14,7 +16,10 @@ async def admin_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if user_id not in admin_ids:
         await update.effective_message.reply_text("❌ Kamu bukan admin.")
+        logger.warning(f"[ADMIN BLOCKED] User {user_id} mencoba akses menu admin.")
         return
+
+    logger.info(f"[ADMIN MENU] User {user_id} membuka menu admin.")
 
     keyboard = [
         [InlineKeyboardButton("👥 Semua User", callback_data="admin_all_users")],

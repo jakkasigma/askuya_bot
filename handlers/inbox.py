@@ -76,12 +76,12 @@ async def handle_anon_message(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     # Kirim pesan ke target dengan tombol LAPORKAN
     try:
+        cleaned_message = message_text.replace("\n", " ")[:30]
+        callback = f"report_{sender.full_name or 'TanpaNama'}|{sender.username or 'TanpaUsername'}|{sender.id}|{cleaned_message}"
+
         pesan_anonim = f"📩 <b>Kamu dapat pesan anonim baru:</b>\n\n{message_text}"
         tombol_lapor = InlineKeyboardMarkup([
-            [InlineKeyboardButton(
-                "🚨 Laporkan", 
-                callback_data=f"report_{sender.full_name or 'TanpaNama'}|{sender.username or 'TanpaUsername'}|{sender.id}|{message_text}"
-            )]
+            [InlineKeyboardButton("🚨 Laporkan", callback_data=callback)]
         ])
 
         await context.bot.send_message(

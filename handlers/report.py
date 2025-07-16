@@ -12,15 +12,11 @@ from models.user_model import get_user_by_id
 # State untuk ConversationHandler
 ASK_REPORT_REASON = 20
 
-# Ganti dengan ID admin yang sebenarnya
-ADMIN_IDS = [7882692915, 5632859442]
-
 # Step 1: User klik tombol 'Laporkan'
 async def ask_report_reason(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    # Data format: name|username|senderid|message
     data = query.data.split("_", 1)[-1]
     if data.count("|") < 3:
         await query.edit_message_text("❌ Format laporan tidak valid.")
@@ -54,13 +50,14 @@ async def handle_report_reason(update: Update, context: ContextTypes.DEFAULT_TYP
         f"🚨 <b>PESAN LAPORAN dari {alias}</b>\n\n"
         f"🔍 <b>Identitas Pengirim:</b>\n"
         f"🧑 Nama: {data['sender_name']}\n"
-        f"👤 Username: @{data['sender_username']}\n"
+        f"👤 Username: @{data['sender_username'] if data['sender_username'] else 'N/A'}\n"
         f"🆔 ID: <code>{data['sender_id']}</code>\n\n"
         f"💬 <b>Pesan yang Dikirim Oleh:</b>\n{data['original_message']}\n\n"
         f"✏️ <b>Isi Laporan:</b>\n{reason}"
     )
 
-    for admin_id in ADMIN_IDS:
+    admin_ids = context.bot_data.get("ADMIN_IDS", [])
+    for admin_id in admin_ids:
         await context.bot.send_message(
             chat_id=admin_id,
             text=report_text,
@@ -79,5 +76,4 @@ report_handler = ConversationHandler(
         ],
     },
     fallbacks=[],
-    #per_message=True  # Untuk menghindari warning
 )
